@@ -20,6 +20,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"strings"
+	"os"
+	"fmt"
 )
 
 var cfgFile string
@@ -39,6 +42,7 @@ func NewRootCommand(cli *CLI) *cobra.Command {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.AddCommand(
+		newConfigCommand(cli),
 		newVMCommand(cli),
 		newImageCommand(cli),
 		newClusterCommand(cli),
@@ -67,6 +71,11 @@ func NewRootCommand(cli *CLI) *cobra.Command {
 	return rootCmd
 }
 func initConfig() {
+	viper.SetEnvPrefix(appName)
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
+	viper.SetConfigType("yaml")
+
 	if viper.GetBool("log-json") {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	}
@@ -77,10 +86,8 @@ func initConfig() {
 	}
 	logrus.Debugf("logger initialized: loglevel %s", logLevel)
 
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
+	// if config was not specified through flag default to home
+	if cfgFile == "" {
 		// Find home directory.
 		home, err := homedir.Dir()
 		util.HandleError(err)
@@ -88,10 +95,21 @@ func initConfig() {
 		// Search config in home directory with name ".nutactl" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".nutactl")
+		cfgFile = home + "/.nutactl"
 	}
+	
+	// Create file if not exists
+	os.OpenFile(cfgFile, os.O_RDONLY|os.O_CREATE, 0666)
+	viper.SetConfigFile(cfgFile)
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		logrus.Debug("Using config file:", viper.ConfigFileUsed())
 	}
+
+	fmt.Println("saving")
+	viper.Set("test", "test")
+	viper.Set("mySecondTest", "test")
+	viper.Set("test2", "wow")
+	viper.SafeWriteConfig()
 }

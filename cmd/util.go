@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"syscall"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
@@ -28,6 +29,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // MarkFlagsRequired ...
@@ -47,6 +49,17 @@ func MarkFlagsRequired(cmd *cobra.Command, names ...string) {
 
 func addOutputFormatFlags(flags *pflag.FlagSet, defaultformat string) {
 	flags.StringP("output", "o", defaultformat, "json|yaml|table")
+}
+
+func readUserPW() (password string, err error) {
+	fmt.Print("Enter Password: ")
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err == nil {
+			return "", err
+	}
+	password = string(bytePassword)
+
+	return password, nil
 }
 
 // BindAllFlags ...

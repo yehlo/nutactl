@@ -17,8 +17,8 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
+	// "os"
 
 	"github.com/briandowns/spinner"
 	logrus "github.com/sirupsen/logrus"
@@ -47,11 +47,7 @@ type CLI struct {
 
 //NewCLI sadasdsa
 func NewCLI() *CLI {
-	viper.SetEnvPrefix(appName)
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
-	viper.SetConfigType("yaml")
-	initConfig()
+	// initConfig()
 	cli := &CLI{
 		Context:             context.Background(),
 		millisecondsPerPoll: 1000 * PollIntervalinSeconds,
