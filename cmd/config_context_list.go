@@ -51,9 +51,9 @@ func runConfigContextList(cli *CLI, cmd *cobra.Command, args []string) error {
 	for i, id := range ids {
 		c := displayers.ConfigContext{
 			ID:	id,
-			URL: getContextValue(id, "url"),
-			User: getContextValue(id, "user"),
-			Insecure: getContextValue(id, "insecure"),
+			URL: "url",
+			User: "user",
+			Insecure: "insecure",
 		}
 		
 		configContexts[i] = c

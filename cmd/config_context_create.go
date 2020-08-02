@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
-	"hash/fnv"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+
+	"github.com/simonfuhrer/nutactl/pkg"
 )
 
 func newConfigContextCreateCommand(cli *CLI) *cobra.Command {
@@ -36,14 +36,6 @@ func newConfigContextCreateCommand(cli *CLI) *cobra.Command {
 		RunE:                  cli.wrap(runConfigContextCreate),
 	}
 	return cmd
-}
-
-func generateID(url string, user string, insecure bool) (id uint32) {
-	s := url + user + strconv.FormatBool(insecure)
-	h := fnv.New32a()
-	h.Write([]byte(s))
-	id = h.Sum32()
-	return id
 }
 
 func getUserInput(message string) (text string, err error) {
@@ -62,19 +54,19 @@ func getUserInput(message string) (text string, err error) {
 func runConfigContextCreate(cli *CLI, cmd *cobra.Command, args []string) error {
 	
 	// query user for context url
-	ntxContextURL, err := getUserInput("URL to use: ")
+	url, err := getUserInput("URL to use: ")
 	if err != nil {
 		return err
 	}
 
 	// query user for context user
-	ntxContextUser, err := getUserInput("User to use: ")
+	user, err := getUserInput("User to use: ")
 	if err != nil {
 		return err
 	}
 
 	// query user for context pass
-	ntxContextPW, err := readUserPW()
+	pw, err := readUserPW()
 	if err != nil {
 		return err
 	}
@@ -92,33 +84,40 @@ func runConfigContextCreate(cli *CLI, cmd *cobra.Command, args []string) error {
 		ntxContextInsecureStr = "false"
 	}
 
-	// query user for context url
-	ntxContextInsecure, err := strconv.ParseBool(ntxContextInsecureStr)
+	// convert string to bool
+	insecure, err := strconv.ParseBool(ntxContextInsecureStr)
 	if err != nil {
 		return err
 	}
 
-	ntxContextID := generateID(ntxContextURL, ntxContextUser, ntxContextInsecure)
+	fmt.Println("setting File")
+	config.File = cfgFile
+	fmt.Println("cfgFile")
+	fmt.Println(cfgFile)
+	id := int(config.CreateContext(url, user, pw, insecure))
+	newContext := strconv.Itoa(id)
+	fmt.Println("newContext: " + newContext)
+
 
 	// write other data to configfile
-	configContextRoot := fmt.Sprintf("ntxContexts.%d", ntxContextID)
-	viper.Set(configContextRoot + ".id", ntxContextID)
-	viper.Set(configContextRoot + ".url", ntxContextURL)
-	viper.Set(configContextRoot + ".user", ntxContextUser)
-	viper.Set(configContextRoot + ".insecure", ntxContextInsecure)
+	// configContextRoot := fmt.Sprintf("ntxContexts.%d", ntxContextID)
+	// viper.Set(configContextRoot + ".id", ntxContextID)
+	// viper.Set(configContextRoot + ".url", ntxContextURL)
+	// viper.Set(configContextRoot + ".user", ntxContextUser)
+	// viper.Set(configContextRoot + ".insecure", ntxContextInsecure)
 
-	fmt.Println(cfgFile)
-	fmt.Println(viper.ConfigFileUsed())
+	// fmt.Println(cfgFile)
+	// fmt.Println(viper.ConfigFileUsed())
 
-	// save config to cfgfile
-	viper.WriteConfig()
+	// // save config to cfgfile
+	// viper.WriteConfig()
 
-	// activate context (cli Client automatically reads in env variables)
-	viper.Set("ntxContexts.active", ntxContextID)
-	os.Setenv(appName + "_API_URL", ntxContextURL)
-	os.Setenv(appName + "_USERNAME", ntxContextUser)
-	os.Setenv(appName + "_PASSWORD", ntxContextPW)
-	os.Setenv(appName + "_INSECURE", ntxContextInsecureStr)
+	// // activate context (cli Client automatically reads in env variables)
+	// viper.Set("ntxContexts.active", ntxContextID)
+	// os.Setenv(appName + "_API_URL", ntxContextURL)
+	// os.Setenv(appName + "_USERNAME", ntxContextUser)
+	// os.Setenv(appName + "_PASSWORD", ntxContextPW)
+	// os.Setenv(appName + "_INSECURE", ntxContextInsecureStr)
 
 	return nil
 }

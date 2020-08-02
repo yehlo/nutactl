@@ -15,11 +15,13 @@
 package cmd
 
 import (
+	"strconv"
+	"github.com/simonfuhrer/nutactl/pkg"
 	"fmt"
-	"os"
+	// "os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	// "github.com/spf13/viper"
 )
 
 func newConfigContextSetCommand(cli *CLI) *cobra.Command {
@@ -37,19 +39,28 @@ func newConfigContextSetCommand(cli *CLI) *cobra.Command {
 
 func runConfigContextSet(cli *CLI, cmd *cobra.Command, args []string) error {
 	newContext := args[0]
+	idInt, err := strconv.Atoi(newContext)
+	id := uint32(idInt)
+	if err != nil {
+		return err
+	}
 
 	// reading pw
 	ntxContextPW, err := readUserPW()
 	if err != nil {
 		return err
 	}
+
+	config.File = cfgFile
+	config.SetContext(id, ntxContextPW)
+
 	
 	// activate context (cli Client automatically reads in env variables)
-	viper.Set("ntxContexts.active", newContext)
-	os.Setenv(appName + "_API_URL", getContextValue(newContext, "url"))
-	os.Setenv(appName + "_USERNAME", getContextValue(newContext, "user"))
-	os.Setenv(appName + "_PASSWORD", ntxContextPW)
-	os.Setenv(appName + "_INSECURE", getContextValue(newContext, "insecure"))
+	// viper.Set("ntxContexts.active", newContext)
+	// os.Setenv(appName + "_API_URL", getContextValue(newContext, "url"))
+	// os.Setenv(appName + "_USERNAME", getContextValue(newContext, "user"))
+	// os.Setenv(appName + "_PASSWORD", ntxContextPW)
+	// os.Setenv(appName + "_INSECURE", getContextValue(newContext, "insecure"))
 
 	fmt.Println("Context " + newContext + " set!")
 	return nil

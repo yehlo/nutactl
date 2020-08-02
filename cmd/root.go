@@ -15,13 +15,13 @@
 package cmd
 
 import (
+	"github.com/simonfuhrer/nutactl/pkg"
 	"git.atilf.fr/atilf/portainer-cli/cmd/util"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"strings"
-	"os"
 	"fmt"
 )
 
@@ -71,6 +71,7 @@ func NewRootCommand(cli *CLI) *cobra.Command {
 	return rootCmd
 }
 func initConfig() {
+	
 	viper.SetEnvPrefix(appName)
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
@@ -97,19 +98,13 @@ func initConfig() {
 		viper.SetConfigName(".nutactl")
 		cfgFile = home + "/.nutactl"
 	}
+	config.File = cfgFile
+	// config() // initialies 
 	
 	// Create file if not exists
-	os.OpenFile(cfgFile, os.O_RDONLY|os.O_CREATE, 0666)
-	viper.SetConfigFile(cfgFile)
+	// os.OpenFile(cfgFile, os.O_RDONLY|os.O_CREATE, 0666)
+	// viper.SetConfigFile(cfgFile)
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		logrus.Debug("Using config file:", viper.ConfigFileUsed())
-	}
-
-	fmt.Println("saving")
-	viper.Set("test", "test")
-	viper.Set("mySecondTest", "test")
-	viper.Set("test2", "wow")
-	viper.SafeWriteConfig()
+	fmt.Println(viper.AllKeys())
 }
