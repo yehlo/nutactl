@@ -54,11 +54,10 @@ func addOutputFormatFlags(flags *pflag.FlagSet, defaultformat string) {
 func readUserPW() (password string, err error) {
 	fmt.Print("Enter Password: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
-	if err == nil {
-			return "", err
+	if err != nil {
+		return "", err
 	}
 	password = string(bytePassword)
-
 	return password, nil
 }
 

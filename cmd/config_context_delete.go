@@ -16,10 +16,8 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-
+	"github.com/simonfuhrer/nutactl/pkg"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func newConfigContextDeleteCommand(cli *CLI) *cobra.Command {
@@ -40,23 +38,12 @@ func runConfigContextDelete(cli *CLI, cmd *cobra.Command, args []string) error {
 
 	// get user OK
 	if askForConfirm(fmt.Sprintf("Delete %s ?", contextToDelete)) == nil {
-		// check if it is currently used context, set active to nil if so 
-		if viper.GetString("ntxContexts.active") == contextToDelete {
-			fmt.Println("Currently used context is set to be deleted, no context is set as active")
-			viper.Set("ntxContexts.active", "nil")
-
-			// clear env
-			os.Unsetenv(appName + "_API_URL")
-			os.Unsetenv(appName + "_USERNAME")
-			os.Unsetenv(appName + "_PASSWORD")
-			os.Unsetenv(appName + "_INSECURE")
+		config.File = cfgFile
+		err := config.RemoveContext(contextToDelete)
+		if err != nil {
+			return err
 		}
 
-		// remove context from viper cfgfile
-		// viper is currently unable to use something like unset, setting whole context to nil as string
-		viper.Set("ntxContexts." + contextToDelete, "nil")
-		viper.WriteConfig()
-		
 		fmt.Println("context " + contextToDelete + " deleted!")
 		return nil
 	}

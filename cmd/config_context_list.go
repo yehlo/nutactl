@@ -15,19 +15,19 @@
 package cmd
 
 import (
-	"github.com/simonfuhrer/nutactl/cmd/displayers"
-	"strings"
+	"fmt"
+	"github.com/simonfuhrer/nutactl/pkg"
+	// "github.com/simonfuhrer/nutactl/cmd/displayers"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func newConfigContextListCommand(cli *CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                   "list-context",
-		Short:                 "sets an existing context active",
+		Short:                 "Lists existing contexts",
 		Aliases:               []string{"l", "li"},
-		Args:                  cobra.ExactArgs(1),
+		Args:                  cobra.ExactArgs(0),
 		TraverseChildren:      true,
 		DisableFlagsInUseLine: true,
 		RunE:                  cli.wrap(runConfigContextList),
@@ -37,27 +37,14 @@ func newConfigContextListCommand(cli *CLI) *cobra.Command {
 }
 
 func runConfigContextList(cli *CLI, cmd *cobra.Command, args []string) error {
-	// get all IDs
-	ids := make([]string, 0)
-	all := viper.AllKeys()
-	for _, value := range all {
-		if strings.Contains(value, "id"){
-			ids = append(ids, strings.Split(value, ".")[1])
-		}
+	// get all contexts
+	contexts, err := config.GetAllContexts()
+	if err != nil {
+		return err
 	}
 
-	// create configContext structs
-	configContexts := make(displayers.ConfigContextSlice, len(ids))
-	for i, id := range ids {
-		c := displayers.ConfigContext{
-			ID:	id,
-			URL: "url",
-			User: "user",
-			Insecure: "insecure",
-		}
-		
-		configContexts[i] = c
-	}
+	fmt.Println(contexts)
+	return nil
 
-	return outputResponse(configContexts)
+	//return outputResponse(displayers.ConfigContexts{ConfigContextList: *contexts})
 }

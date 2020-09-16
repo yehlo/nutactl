@@ -54,7 +54,7 @@ func getUserInput(message string) (text string, err error) {
 func runConfigContextCreate(cli *CLI, cmd *cobra.Command, args []string) error {
 	
 	// query user for context url
-	url, err := getUserInput("URL to use: ")
+	url, err := getUserInput("Prism Central to use: ")
 	if err != nil {
 		return err
 	}
@@ -64,14 +64,6 @@ func runConfigContextCreate(cli *CLI, cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-
-	// query user for context pass
-	pw, err := readUserPW()
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("")
 
 	// query user for context security
 	ntxContextInsecureStr, err := getUserInput("Accept insecure TLS certificates (y/N): ")
@@ -90,34 +82,12 @@ func runConfigContextCreate(cli *CLI, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println("setting File")
-	config.File = cfgFile
-	fmt.Println("cfgFile")
-	fmt.Println(cfgFile)
-	id := int(config.CreateContext(url, user, pw, insecure))
-	newContext := strconv.Itoa(id)
-	fmt.Println("newContext: " + newContext)
-
-
-	// write other data to configfile
-	// configContextRoot := fmt.Sprintf("ntxContexts.%d", ntxContextID)
-	// viper.Set(configContextRoot + ".id", ntxContextID)
-	// viper.Set(configContextRoot + ".url", ntxContextURL)
-	// viper.Set(configContextRoot + ".user", ntxContextUser)
-	// viper.Set(configContextRoot + ".insecure", ntxContextInsecure)
-
-	// fmt.Println(cfgFile)
-	// fmt.Println(viper.ConfigFileUsed())
-
-	// // save config to cfgfile
-	// viper.WriteConfig()
-
-	// // activate context (cli Client automatically reads in env variables)
-	// viper.Set("ntxContexts.active", ntxContextID)
-	// os.Setenv(appName + "_API_URL", ntxContextURL)
-	// os.Setenv(appName + "_USERNAME", ntxContextUser)
-	// os.Setenv(appName + "_PASSWORD", ntxContextPW)
-	// os.Setenv(appName + "_INSECURE", ntxContextInsecureStr)
+	id, err := config.CreateContext(url, user, insecure)
+	if err != nil {
+		return err
+	}
+	newContext := strconv.Itoa(int(id))
+	fmt.Println("new Context: " + newContext + " set as active!")
 
 	return nil
 }

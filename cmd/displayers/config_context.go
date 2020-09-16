@@ -15,34 +15,34 @@
 package displayers
 
 import (
+	"github.com/simonfuhrer/nutactl/pkg"
 	"io"
+	"strconv"
+	"fmt"
 )
 
-// ConfigContext ...
-type ConfigContext struct {
-	ID, URL, User, Insecure	string
+// ConfigContexts ...
+type ConfigContexts struct {
+	config.ContextList
 }
 
-// ConfigContextSlice slice of ConfigContext structs
-type ConfigContextSlice []ConfigContext
-
-func (o ConfigContextSlice) JSON(w io.Writer) error {
-	return displayJSON(w, o)
+func (o ConfigContexts) JSON(w io.Writer) error {
+	return displayJSON(w, o.Entities)
 }
 
-func (o ConfigContextSlice) JSONPath(w io.Writer, template string) error {
-	return displayJSONPath(w, template, o)
+func (o ConfigContexts) JSONPath(w io.Writer, template string) error {
+	return displayJSONPath(w, template, o.Entities)
 }
 
-func (o ConfigContextSlice) PP(w io.Writer) error {
-	return displayPP(w, o)
+func (o ConfigContexts) PP(w io.Writer) error {
+	return displayPP(w, o.Entities)
 }
 
-func (o ConfigContextSlice) YAML(w io.Writer) error {
-	return displayYAML(w, o)
+func (o ConfigContexts) YAML(w io.Writer) error {
+	return displayYAML(w, o.Entities)
 }
 
-func (o ConfigContextSlice) header() []string {
+func (o ConfigContexts) header() []string {
 	return []string{
 		"ID",
 		"URL",
@@ -51,19 +51,22 @@ func (o ConfigContextSlice) header() []string {
 	}
 }
 
-func (o ConfigContextSlice) TableData(w io.Writer) error {
-	data := make([][]string, len(o))
-	for i, configContext := range o {
+func (o ConfigContexts) TableData(w io.Writer) error {
+	data := make([][]string, len(o.Entities))
+	for i, configContext := range o.Entities {
+		// converting to strings
+		id := fmt.Sprint(configContext.ID)
+		insecure := strconv.FormatBool(configContext.Insecure)
 		data[i] = []string{
-			configContext.ID,
+			id,
 			configContext.URL,
 			configContext.User,
-			configContext.Insecure,
+			insecure,
 		}
 	}
 	return displayTable(w, data, o.header())
 }
 
-func (o ConfigContextSlice) Text(w io.Writer) error {
+func (o ConfigContexts) Text(w io.Writer) error {
 	return nil
 }

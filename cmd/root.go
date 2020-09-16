@@ -17,12 +17,11 @@ package cmd
 import (
 	"github.com/simonfuhrer/nutactl/pkg"
 	"git.atilf.fr/atilf/portainer-cli/cmd/util"
-	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"strings"
-	"fmt"
+	"os"
 )
 
 var cfgFile string
@@ -66,16 +65,15 @@ func NewRootCommand(cli *CLI) *cobra.Command {
 	flags.BoolP("log-json", "", false, "log as json")
 
 	BindAllFlags(rootCmd)
-	MarkFlagsRequired(rootCmd, "api-url", "username", "password")
+	// can no longer require flags because config file is interpreted later on
+	// MarkFlagsRequired(rootCmd, "api-url", "username", "password")
 
 	return rootCmd
 }
 func initConfig() {
-	
 	viper.SetEnvPrefix(appName)
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
-	viper.SetConfigType("yaml")
 
 	if viper.GetBool("log-json") {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
@@ -87,24 +85,24 @@ func initConfig() {
 	}
 	logrus.Debugf("logger initialized: loglevel %s", logLevel)
 
-	// if config was not specified through flag default to home
+	// if config was not specified through flag default to home/nutactl
 	if cfgFile == "" {
 		// Find home directory.
-		home, err := homedir.Dir()
+		home, err := os.UserHomeDir()
 		util.HandleError(err)
 
-		// Search config in home directory with name ".nutactl" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".nutactl")
-		cfgFile = home + "/.nutactl"
-	}
-	config.File = cfgFile
-	// config() // initialies 
-	
-	// Create file if not exists
-	// os.OpenFile(cfgFile, os.O_RDONLY|os.O_CREATE, 0666)
-	// viper.SetConfigFile(cfgFile)
 
-	// If a config file is found, read it in.
-	fmt.Println(viper.AllKeys())
+		// check if nutactl folder exists in home
+		if _, err := os.Stat(home + "/.nutactl/"); os.IsNotExist(err) {
+			// create folder if not exists
+			os.Mkdir(home + "/.nutactl", 0750)
+		}
+		util.HandleError(err)
+
+		// set default configfile
+		cfgFile = home + "/.nutactl/config"
+	}
+	// set configfile to use
+	config.File = cfgFile
+	config.InitContext()
 }

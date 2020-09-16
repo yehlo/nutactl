@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"time"
 	// "os"
-
 	"github.com/briandowns/spinner"
 	logrus "github.com/sirupsen/logrus"
 
@@ -70,6 +69,22 @@ func (c *CLI) wrap(f func(*CLI, *cobra.Command, []string) error) func(*cobra.Com
 //Client cli ...
 func (c *CLI) Client() *nutanix.Client {
 	if c.client == nil {
+		// check if api-url is set
+		if viper.Get("api-url") == ""{
+			panic("api-url not set!")
+		}
+
+		// pw is not managed by config file
+		// if not set query user and define viper variable
+		if ! viper.IsSet("password"){
+			pw, err := readUserPW()
+			if err != nil {
+				panic(err)
+			}
+			viper.Set("password", pw)
+			fmt.Println("")
+		}
+
 		configCreds := nutanix.Credentials{
 			Username: viper.GetString("username"),
 			Password: viper.GetString("password"),
